@@ -1,0 +1,14 @@
+{
+  "name": "md-table-lint",
+  "version": "0.1.0",
+  "description": "Lints markdown tables and reports broken ones with line numbers",
+  "main": "dist/linter.js",
+  "bin": {
+    "md-table-lint": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "license": "MIT",
+  "author": "ryans78"
+}
