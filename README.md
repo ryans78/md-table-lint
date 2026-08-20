@@ -52,6 +52,14 @@ it's usable as a pre-commit or CI check:
 node dist/cli.js $(git diff --cached --name-only -- '*.md') || exit 1
 ```
 
+## Tests
+
+```
+$ npm test
+```
+
+Uses `node:test` from the standard library, so there's nothing to install.
+
 ## What it checks right now
 
 - `column-count-mismatch` — a row (including the separator row) has a
