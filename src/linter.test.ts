@@ -95,3 +95,18 @@ test('table detection ends at a blank line', () => {
   const md = ['| A | B |', '| --- | --- |', '| 1 | 2 |', '', '| 3 | 4 | 5 |'].join('\n');
   assert.deepStrictEqual(lintMarkdown(md), []);
 });
+
+test('a bare dash line after pipe-containing text is a setext heading, not a table', () => {
+  const md = ['Some text | with a pipe in it', '---', 'more text'].join('\n');
+  assert.deepStrictEqual(lintMarkdown(md), []);
+});
+
+test('a thematic break after pipe-containing text is not treated as a table', () => {
+  const md = ['a paragraph with a | in it', '***', 'next paragraph'].join('\n');
+  assert.deepStrictEqual(lintMarkdown(md), []);
+});
+
+test('a single-column table still needs a pipe on the separator row to be recognized', () => {
+  const md = ['| Name |', '| --- |', '| Ada |'].join('\n');
+  assert.deepStrictEqual(lintMarkdown(md), []);
+});

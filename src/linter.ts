@@ -38,12 +38,14 @@ function isSeparatorCell(cell: string): boolean {
 }
 
 // A candidate delimiter row: only made of pipes, dashes, colons and
-// whitespace, with at least one dash. This is a heuristic, not a full GFM
-// parser, so it can misfire on a thematic break line right after a
-// paragraph that happens to contain a pipe.
+// whitespace, with at least one dash and at least one pipe. The pipe is
+// required because a bare dash run (`---`) right after a text line is
+// ambiguous with a setext heading underline or a thematic break, and GFM
+// itself resolves that ambiguity in favor of the heading/break, not a
+// table, when there's no pipe to make the table syntax unambiguous.
 function isSeparatorLine(line: string): boolean {
   const t = line.trim();
-  if (t === '' || !t.includes('-')) return false;
+  if (t === '' || !t.includes('-') || !t.includes('|')) return false;
   return /^[\s|:-]+$/.test(t);
 }
 

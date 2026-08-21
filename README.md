@@ -69,9 +69,12 @@ Uses `node:test` from the standard library, so there's nothing to install.
 - `empty-header-cell` — a header cell is blank.
 
 Table detection is a heuristic (a line with a `|` followed by a line that
-looks like a separator), not a full CommonMark/GFM parser, so it can
-misfire on edge cases like a thematic break (`---`) right after a
-paragraph that happens to contain a pipe character.
+looks like a separator), not a full CommonMark/GFM parser. A bare dash
+run right after a paragraph (`---` or `***`) is treated as a setext
+heading underline or thematic break rather than a table separator,
+matching how GFM itself resolves that ambiguity, so it won't misfire on
+those. Cases the heuristic still doesn't handle, like tables inside
+fenced code blocks or list items, are not yet accounted for.
 
 ## Requirements
 
