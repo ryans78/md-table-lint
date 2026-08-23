@@ -49,12 +49,32 @@ function isSeparatorLine(line: string): boolean {
   return /^[\s|:-]+$/.test(t);
 }
 
+// Matches a fenced code block delimiter (``` or ~~~, at least three chars,
+// up to 3 leading spaces of indentation per CommonMark).
+const FENCE_RE = /^ {0,3}(`{3,}|~{3,})/;
+
 export function lintMarkdown(text: string): Finding[] {
   const lines = text.split(/\r?\n/);
   const findings: Finding[] = [];
   let i = 0;
+  let fence: { char: string; len: number } | null = null;
   while (i < lines.length) {
     const line = lines[i];
+    const fenceMatch = line.match(FENCE_RE);
+    if (fenceMatch) {
+      const marker = fenceMatch[1];
+      if (fence === null) {
+        fence = { char: marker[0], len: marker.length };
+      } else if (marker[0] === fence.char && marker.length >= fence.len) {
+        fence = null;
+      }
+      i++;
+      continue;
+    }
+    if (fence !== null) {
+      i++;
+      continue;
+    }
     const next = lines[i + 1];
     if (line.includes('|') && next !== undefined && isSeparatorLine(next)) {
       i = lintTable(lines, i, findings);

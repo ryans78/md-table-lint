@@ -73,8 +73,10 @@ looks like a separator), not a full CommonMark/GFM parser. A bare dash
 run right after a paragraph (`---` or `***`) is treated as a setext
 heading underline or thematic break rather than a table separator,
 matching how GFM itself resolves that ambiguity, so it won't misfire on
-those. Cases the heuristic still doesn't handle, like tables inside
-fenced code blocks or list items, are not yet accounted for.
+those. Content inside fenced code blocks (``` or ~~~) is skipped, so a
+table-looking snippet in an example doesn't get flagged. Cases the
+heuristic still doesn't handle, like tables inside list items, are not
+yet accounted for.
 
 ## Requirements
 

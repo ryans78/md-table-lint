@@ -110,3 +110,40 @@ test('a single-column table still needs a pipe on the separator row to be recogn
   const md = ['| Name |', '| --- |', '| Ada |'].join('\n');
   assert.deepStrictEqual(lintMarkdown(md), []);
 });
+
+test('a broken-looking table inside a fenced code block is not linted', () => {
+  const md = [
+    '```',
+    '| A | B | C |',
+    '| --- |',
+    '| 1 | 2 |',
+    '```',
+  ].join('\n');
+  assert.deepStrictEqual(lintMarkdown(md), []);
+});
+
+test('a real table after a closed fence is still linted', () => {
+  const md = [
+    '```',
+    '| A | B |',
+    '| --- |',
+    '```',
+    '',
+    '| X | Y |',
+    '| --- |',
+    '| 1 | 2 |',
+  ].join('\n');
+  const findings = lintMarkdown(md);
+  assert.deepStrictEqual(rules(findings), ['column-count-mismatch']);
+  assert.strictEqual(findings[0].line, 7);
+});
+
+test('tilde fences are also treated as code blocks', () => {
+  const md = ['~~~', '| A | B | C |', '| --- |', '~~~'].join('\n');
+  assert.deepStrictEqual(lintMarkdown(md), []);
+});
+
+test('a fence closer shorter than its opener does not close the block', () => {
+  const md = ['````', '``', '| A | B | C |', '| --- |', '````'].join('\n');
+  assert.deepStrictEqual(lintMarkdown(md), []);
+});
