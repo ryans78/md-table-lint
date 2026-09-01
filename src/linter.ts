@@ -141,3 +141,118 @@ function lintTable(lines: string[], start: number, findings: Finding[]): number 
   }
   return i;
 }
+
+interface RawTable {
+  header: string[];
+  sepCells: string[];
+  dataRows: { cells: string[]; line: string }[];
+}
+
+// Gathers the raw rows of one table (without judging them) so fixMarkdown
+// can rebuild it. Mirrors the scanning logic in lintTable.
+function collectTable(lines: string[], start: number): { table: RawTable; consumed: number } {
+  const header = splitTableRow(lines[start]);
+  const sepCells = splitTableRow(lines[start + 1]);
+  const dataRows: { cells: string[]; line: string }[] = [];
+  let i = start + 2;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (line.trim() === '' || !line.includes('|')) break;
+    dataRows.push({ cells: splitTableRow(line), line });
+    i++;
+  }
+  return { table: { header, sepCells, dataRows }, consumed: i };
+}
+
+// Rebuilds a table with every column padded to the same width and the
+// separator row's alignment colons preserved. A data row with more cells
+// than the header can't be reflowed without guessing which cell is
+// spurious, so it's left as-is and still surfaces as a finding.
+function renderTable(table: RawTable): string[] {
+  const targetCols = table.header.length;
+
+  const align = Array.from({ length: targetCols }, (_, idx) => {
+    const cell = table.sepCells[idx];
+    if (cell !== undefined && isSeparatorCell(cell)) {
+      return { left: cell.startsWith(':'), right: cell.endsWith(':') };
+    }
+    return { left: false, right: false };
+  });
+
+  const fixedRows: (string[] | null)[] = table.dataRows.map((row) => {
+    if (row.cells.length > targetCols) return null;
+    if (row.cells.length < targetCols) {
+      return [...row.cells, ...Array(targetCols - row.cells.length).fill('')];
+    }
+    return row.cells;
+  });
+
+  const widths = Array.from({ length: targetCols }, (_, idx) => {
+    let w = Math.max(3, table.header[idx].length);
+    for (const row of fixedRows) {
+      if (row) w = Math.max(w, row[idx].length);
+    }
+    return w;
+  });
+
+  const renderRow = (cells: string[]): string =>
+    '| ' + cells.map((c, idx) => c.padEnd(widths[idx])).join(' | ') + ' |';
+
+  const renderSep = (): string =>
+    '| ' +
+    align
+      .map(({ left, right }, idx) => {
+        const dashLen = widths[idx] - (left ? 1 : 0) - (right ? 1 : 0);
+        return (left ? ':' : '') + '-'.repeat(Math.max(1, dashLen)) + (right ? ':' : '');
+      })
+      .join(' | ') +
+    ' |';
+
+  const lines = [renderRow(table.header), renderSep()];
+  fixedRows.forEach((row, idx) => {
+    lines.push(row ? renderRow(row) : table.dataRows[idx].line);
+  });
+  return lines;
+}
+
+// Rewrites every pipe table in `text`: pads rows to the header's column
+// count, normalizes the separator row's dashes/colons, and aligns column
+// widths. Rows with extra cells and non-table content are left untouched.
+export function fixMarkdown(text: string): string {
+  const usesCRLF = text.includes('\r\n');
+  const lines = text.split(/\r?\n/);
+  const out: string[] = [];
+  let i = 0;
+  let fence: { char: string; len: number } | null = null;
+  while (i < lines.length) {
+    const line = lines[i];
+    const fenceMatch = line.match(FENCE_RE);
+    if (fenceMatch) {
+      const marker = fenceMatch[1];
+      if (fence === null) {
+        fence = { char: marker[0], len: marker.length };
+      } else if (marker[0] === fence.char && marker.length >= fence.len) {
+        fence = null;
+      }
+      out.push(line);
+      i++;
+      continue;
+    }
+    if (fence !== null) {
+      out.push(line);
+      i++;
+      continue;
+    }
+    const next = lines[i + 1];
+    if (line.includes('|') && next !== undefined && isSeparatorLine(next)) {
+      const { table, consumed } = collectTable(lines, i);
+      out.push(...renderTable(table));
+      i = consumed;
+    } else {
+      out.push(line);
+      i++;
+    }
+  }
+  const joined = out.join('\n');
+  return usesCRLF ? joined.replace(/\n/g, '\r\n') : joined;
+}

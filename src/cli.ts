@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
-import { lintMarkdown } from './linter';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { fixMarkdown, lintMarkdown } from './linter';
 
 function main(argv: string[]): number {
-  const paths = argv.slice(2);
+  const args = argv.slice(2);
+  const fix = args.includes('--fix');
+  const paths = args.filter((a) => a !== '--fix');
   if (paths.length === 0) {
-    console.error('usage: md-table-lint <file.md> [file2.md ...]');
+    console.error('usage: md-table-lint [--fix] <file.md> [file2.md ...]');
     return 1;
   }
 
@@ -18,6 +20,15 @@ function main(argv: string[]): number {
       console.error(`${path}: cannot read file (${(err as Error).message})`);
       hasError = true;
       continue;
+    }
+
+    if (fix) {
+      const fixed = fixMarkdown(text);
+      if (fixed !== text) {
+        writeFileSync(path, fixed);
+        console.log(`${path}: fixed`);
+        text = fixed;
+      }
     }
 
     const findings = lintMarkdown(text);

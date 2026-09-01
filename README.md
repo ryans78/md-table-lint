@@ -52,6 +52,19 @@ it's usable as a pre-commit or CI check:
 node dist/cli.js $(git diff --cached --name-only -- '*.md') || exit 1
 ```
 
+### `--fix`
+
+`node dist/cli.js --fix notes.md` rewrites each table in place: it pads
+short rows out to the header's column count, normalizes the separator
+row's dashes and colons, and aligns every column to its widest cell. It
+then re-lints the fixed file and reports whatever's left.
+
+Not everything is safe to fix automatically. A row with *more* cells
+than the header is left untouched — there's no way to know which cell
+is the spurious one — and an empty header cell isn't filled in, since
+there's nothing to infer it from. Both still show up in the post-fix
+report.
+
 ## Tests
 
 ```
