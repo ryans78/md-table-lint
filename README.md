@@ -65,6 +65,34 @@ is the spurious one — and an empty header cell isn't filled in, since
 there's nothing to infer it from. Both still show up in the post-fix
 report.
 
+`--fix` and `--config` can be combined and used in either order, e.g.
+`node dist/cli.js --fix --config ci.json notes.md`.
+
+### Config
+
+To turn off individual rules, add a `.md-table-lintrc.json` file in the
+directory you run the linter from:
+
+```json
+{
+  "rules": {
+    "empty-header-cell": false
+  }
+}
+```
+
+Any rule not listed stays enabled — you only need to name the ones you
+want off. `--config <path>` points the CLI at a config file somewhere
+else instead of looking in the current directory. An unknown rule name
+in the file is reported as a warning and otherwise ignored, so a typo
+doesn't silently disable something you meant to keep.
+
+Library users pass the same shape directly to `lintMarkdown`:
+
+```js
+lintMarkdown(text, { rules: { 'empty-header-cell': false } });
+```
+
 ## Tests
 
 ```

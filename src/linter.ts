@@ -53,7 +53,13 @@ function isSeparatorLine(line: string): boolean {
 // up to 3 leading spaces of indentation per CommonMark).
 const FENCE_RE = /^ {0,3}(`{3,}|~{3,})/;
 
-export function lintMarkdown(text: string): Finding[] {
+export interface LintOptions {
+  // Maps a rule name to false to suppress its findings. Rules absent from
+  // this map, or set to anything other than false, stay enabled.
+  rules?: Record<string, boolean>;
+}
+
+export function lintMarkdown(text: string, options: LintOptions = {}): Finding[] {
   const lines = text.split(/\r?\n/);
   const findings: Finding[] = [];
   let i = 0;
@@ -82,7 +88,7 @@ export function lintMarkdown(text: string): Finding[] {
       i++;
     }
   }
-  return findings;
+  return findings.filter((f) => options.rules?.[f.rule] !== false);
 }
 
 // Lints one table starting at `start` (the header line) and returns the

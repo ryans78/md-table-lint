@@ -207,6 +207,15 @@ test('fix is idempotent', () => {
   assert.strictEqual(fixMarkdown(once), once);
 });
 
+test('disabling a rule via options suppresses its findings but not others', () => {
+  const md = ['| Name |  |', '| --- | === |', '| Ada | Engineer |'].join('\n');
+  const all = lintMarkdown(md);
+  assert.deepStrictEqual(rules(all).sort(), ['empty-header-cell', 'invalid-separator']);
+
+  const filtered = lintMarkdown(md, { rules: { 'empty-header-cell': false } });
+  assert.deepStrictEqual(rules(filtered), ['invalid-separator']);
+});
+
 test('fix preserves CRLF line endings', () => {
   const md = ['| A | B |', '| --- | --- |', '| 1 | 2 |'].join('\r\n');
   const fixed = fixMarkdown(md);
