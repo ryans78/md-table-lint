@@ -93,6 +93,26 @@ Library users pass the same shape directly to `lintMarkdown`:
 lintMarkdown(text, { rules: { 'empty-header-cell': false } });
 ```
 
+## GitHub Action
+
+The repo itself can be used as an action, so a workflow doesn't need to
+clone and build it by hand:
+
+```yaml
+- uses: ryans78/md-table-lint@main
+  with:
+    files: 'docs/**/*.md README.md'   # default: **/*.md
+    fix: false                        # set true to run --fix instead of reporting
+    config: '.md-table-lintrc.json'   # optional, same as CLI's --config
+```
+
+It sets up Node, builds the tool from source (there's no published npm
+package yet, so this is a build-and-run step rather than an install), then
+runs it against the matched files. The step fails the job if any
+error-level finding turns up, same as the CLI's exit code. `fix: true`
+rewrites files in the checkout in place; pair it with a follow-up step
+that diffs or commits if you want the result to end up somewhere.
+
 ## Tests
 
 ```

@@ -1,0 +1,55 @@
+name: 'md-table-lint'
+description: 'Check markdown pipe tables for mismatched columns, invalid separators, and empty headers'
+inputs:
+  files:
+    description: 'Space-separated glob pattern(s) of markdown files to check'
+    required: false
+    default: '**/*.md'
+  fix:
+    description: 'Run in --fix mode instead of just reporting findings'
+    required: false
+    default: 'false'
+  config:
+    description: 'Path to a .md-table-lintrc.json config file'
+    required: false
+    default: ''
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Build md-table-lint
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        npm install -g typescript
+        npm run build
+
+    - name: Run md-table-lint
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        MD_TABLE_LINT_FILES: ${{ inputs.files }}
+        MD_TABLE_LINT_FIX: ${{ inputs.fix }}
+        MD_TABLE_LINT_CONFIG: ${{ inputs.config }}
+        MD_TABLE_LINT_BIN: ${{ github.action_path }}/dist/cli.js
+      run: |
+        shopt -s globstar nullglob
+        files=($MD_TABLE_LINT_FILES)
+        if [ "${#files[@]}" -eq 0 ]; then
+          echo "no markdown files matched: $MD_TABLE_LINT_FILES"
+          exit 0
+        fi
+
+        args=()
+        if [ "$MD_TABLE_LINT_FIX" = "true" ]; then
+          args+=("--fix")
+        fi
+        if [ -n "$MD_TABLE_LINT_CONFIG" ]; then
+          args+=("--config" "$MD_TABLE_LINT_CONFIG")
+        fi
+
+        node "$MD_TABLE_LINT_BIN" "${args[@]}" "${files[@]}"
