@@ -34,7 +34,7 @@ function loadConfig(explicitPath: string | undefined): Config | undefined {
   return config;
 }
 
-function main(argv: string[]): number {
+export function main(argv: string[]): number {
   const args = argv.slice(2);
   const fix = args.includes('--fix');
   const configFlagIndex = args.indexOf('--config');
@@ -82,4 +82,8 @@ function main(argv: string[]): number {
   return hasError ? 1 : 0;
 }
 
-process.exit(main(process.argv));
+// Only run when invoked directly (`node cli.js ...`), not when required by
+// a test, so main() can be exercised without the process exiting underneath it.
+if (require.main === module) {
+  process.exit(main(process.argv));
+}
