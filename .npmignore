@@ -1,0 +1,6 @@
+src/
+tsconfig.json
+action.yml
+.md-table-lintrc.json
+*.log
+.DS_Store

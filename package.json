@@ -3,13 +3,35 @@
   "version": "0.1.0",
   "description": "Lints markdown tables and reports broken ones with line numbers",
   "main": "dist/linter.js",
+  "types": "dist/linter.d.ts",
   "bin": {
     "md-table-lint": "dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
-    "test": "tsc && node --test dist/linter.test.js dist/config.test.js dist/cli.test.js"
+    "test": "tsc && node --test dist/linter.test.js dist/config.test.js dist/cli.test.js",
+    "prepublishOnly": "npm test"
   },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "markdown",
+    "lint",
+    "table",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryans78/md-table-lint.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ryans78/md-table-lint/issues"
+  },
+  "homepage": "https://github.com/ryans78/md-table-lint#readme",
   "license": "MIT",
   "author": "ryans78"
 }
