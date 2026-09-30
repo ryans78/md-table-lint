@@ -20,7 +20,8 @@ Given `notes.md`:
 | Name | Role | Notes |
 | --- | --- |
 | Ada | Engineer | Started Q1 |
-| Grace |  | Started Q2
+| Grace | Started Q2 |
+|  | Analyst | Started Q3 |
 ```
 
 Running the linter:
@@ -28,12 +29,11 @@ Running the linter:
 ```
 $ node dist/cli.js notes.md
 notes.md:2: error [column-count-mismatch] separator row has 2 column(s), header has 3
-notes.md:3: error [column-count-mismatch] row has 3 column(s), header has 3
-notes.md:4: warning [empty-header-cell] column 2 has an empty header
+notes.md:4: error [column-count-mismatch] row has 2 column(s), header has 3
 ```
 
-(That last line is actually a data row with an empty cell, not the header
-— the point stands: the tool tells you the line number, you go look.)
+Empty cells in data rows (line 5) are fine; only empty header cells are
+reported.
 
 ## Usage
 
